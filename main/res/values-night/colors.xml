@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FF000000</color>
+    <color name="black">#FFFFFFFF</color>
+    <color name="light_gray">#696969</color>
+    <color name="sudoku_prefilled">#DDDDDD</color>
+    <color name="sudoku_selected">#FF03DAC5</color>
+    <color name="sudoku_solved">#018786</color>
+    <color name="sudoku_correct_blue">#FF03DAC5</color>
+    <color name="gray">#A9A9A9</color>
+    <color name="red">#D32F2F</color>
+</resources>

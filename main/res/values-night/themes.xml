@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Main App Theme -->
+    <style name="Theme.SudokuApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary app colors -->
+        <item name="colorPrimary">@color/sudoku_solved</item>
+        <item name="colorPrimaryVariant">@color/sudoku_solved</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/sudoku_solved</item>
+    </style>
+
+</resources>
