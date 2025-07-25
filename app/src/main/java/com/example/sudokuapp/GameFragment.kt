@@ -6,14 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import kotlinx.coroutines.*
 
 class GameFragment : Fragment() {
-
     private lateinit var sudokuGridView: SudokuGridView
     private lateinit var tvTimer: TextView
 
@@ -41,15 +39,20 @@ class GameFragment : Fragment() {
             viewModel.secondsElapsed = 0
         }
 
-        // ✅ Pass board & solution to custom view
+        //  Pass board & solution to custom view
         sudokuGridView.board = viewModel.board
         sudokuGridView.solution = viewModel.solution
+        sudokuGridView.isPrefilled = viewModel.isPrefilled
+        sudokuGridView.drafts = viewModel.drafts
 
-        // ✅ Cell selection callback
+
+        //  Cell selection callback
         sudokuGridView.onCellSelected = { r, c ->
             viewModel.selectedRow = r
             viewModel.selectedCol = c
+            sudokuGridView.invalidate()
         }
+
 
         startTimer()
         setupKeyboard(view)
@@ -82,6 +85,16 @@ class GameFragment : Fragment() {
                 placeNumber(number)
             }
         }
+        view.findViewById<Button>(R.id.btnDraft).setOnClickListener {
+            viewModel.isDraftMode = !viewModel.isDraftMode
+            it.alpha = if (viewModel.isDraftMode) 0.5f else 1f
+        }
+
+        view.findViewById<Button>(R.id.btnHint).setOnClickListener {
+            viewModel.isDraftMode = false
+            view.findViewById<Button>(R.id.btnDraft).alpha = 1f
+            applyHint()
+        }
     }
 
     private fun placeNumber(num: Int) {
@@ -91,11 +104,18 @@ class GameFragment : Fragment() {
         val c = viewModel.selectedCol
         if (r == -1 || c == -1) return
 
+        if (viewModel.isPrefilled[r][c]) return
+
+        if (viewModel.isDraftMode) {
+            viewModel.drafts[r][c].add(num)
+            sudokuGridView.invalidate()
+            return
+        }
+
         if (num == 0) {
             // Clear wrong guess and board value
             viewModel.board[r][c] = 0
             sudokuGridView.showWrongGuess(0)
-            sudokuGridView.invalidate()
             return
         }
 
@@ -157,7 +177,8 @@ class GameFragment : Fragment() {
 
         val buttonIds = listOf(
             R.id.btn1, R.id.btn2, R.id.btn3, R.id.btn4, R.id.btn5,
-            R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9, R.id.btnClear
+            R.id.btn6, R.id.btn7, R.id.btn8, R.id.btn9, R.id.btnClear,
+            R.id.btnDraft, R.id.btnHint
         )
 
         for (id in buttonIds) {
@@ -240,6 +261,27 @@ class GameFragment : Fragment() {
                     }
                 }
                 .start()
+        }
+    }
+    private fun applyHint() {
+        val emptyCells = mutableListOf<Pair<Int, Int>>()
+
+        for (r in 0..8) {
+            for (c in 0..8) {
+                if (!viewModel.isPrefilled[r][c] && viewModel.board[r][c] == 0) {
+                    emptyCells.add(r to c)
+                }
+            }
+        }
+
+        if (emptyCells.isNotEmpty()) {
+            val (r, c) = emptyCells.random()
+            viewModel.board[r][c] = viewModel.solution[r][c]
+            viewModel.drafts[r][c].clear()
+            sudokuGridView.invalidate()
+            updateKeyboardButtons()
+            if (checkWin()) showWinAnimation()
+            return
         }
     }
 

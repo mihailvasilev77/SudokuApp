@@ -11,7 +11,10 @@
     <string name="three">3</string>
     <string name="two">2</string>
     <string name="timer_start">00:00</string>
-    <string name="loading">Loading...</string>
+    <string name="draft">Draft</string>
+    <string name="hint">Hint</string>
+    <string name="four">4</string>
+    <string name="return_to_game">Return to Game</string>
     <string-array name="difficulty_levels">
         <item>Easy</item>
         <item>Medium</item>

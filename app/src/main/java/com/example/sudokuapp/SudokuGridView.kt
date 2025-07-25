@@ -13,6 +13,10 @@ class SudokuGridView @JvmOverloads constructor(
 
     var board: Array<IntArray> = Array(9) { IntArray(9) }
     var solution: Array<IntArray> = Array(9) { IntArray(9) }
+    var isPrefilled: Array<BooleanArray> = Array(9) { BooleanArray(9) }
+    var drafts: Array<Array<MutableSet<Int>>> = Array(9) { Array(9) { mutableSetOf<Int>() } }
+
+
 
     var selectedRow = -1
     var selectedCol = -1
@@ -22,21 +26,21 @@ class SudokuGridView @JvmOverloads constructor(
     private var wrongGuess: Int? = null
 
     private val paintGridThick = Paint().apply {
-        color = Color.BLACK
+        color = ContextCompat.getColor(context, R.color.black)
         strokeWidth = 6f
         style = Paint.Style.STROKE
         isAntiAlias = true
     }
 
     private val paintGridThin = Paint().apply {
-        color = Color.GRAY
+        color = ContextCompat.getColor(context, R.color.gray)
         strokeWidth = 2f
         style = Paint.Style.STROKE
         isAntiAlias = true
     }
 
     private val paintText = Paint().apply {
-        color = Color.BLACK
+        color = ContextCompat.getColor(context, R.color.black)
         textSize = 50f
         textAlign = Paint.Align.CENTER
         isAntiAlias = true
@@ -44,19 +48,19 @@ class SudokuGridView @JvmOverloads constructor(
     }
 
     private val paintHighlightRowCol = Paint().apply {
-        color = Color.parseColor("#FFFACD") // light yellow
+        color = ContextCompat.getColor(context, R.color.light_gray)
     }
 
     private val paintHighlightSameNumber = Paint().apply {
-        color = Color.parseColor("#D3D3D3") // light gray
+        color = ContextCompat.getColor(context, R.color.sudoku_selected)
     }
 
     private val paintSelected = Paint().apply {
-        color = Color.parseColor("#ADD8E6") // light blue
+        color = ContextCompat.getColor(context, R.color.sudoku_correct_blue)
     }
 
     private val paintPrefilledBg = Paint().apply {
-        color = Color.WHITE
+        color = ContextCompat.getColor(context, R.color.white)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -109,6 +113,8 @@ class SudokuGridView @JvmOverloads constructor(
 
         // 4) DRAW NUMBERS
         val textOffset = (paintText.descent() + paintText.ascent()) / 2
+        val originalTextSize = paintText.textSize
+
         for (r in 0..8) {
             for (c in 0..8) {
                 val x = c * cellSize + cellSize / 2
@@ -117,23 +123,38 @@ class SudokuGridView @JvmOverloads constructor(
                 if (board[r][c] != 0) {
                     paintText.color = if (solution[r][c] == board[r][c]) {
                         if (solution[r][c] != 0 && solution[r][c] == board[r][c] && board[r][c] != 0 &&
-                            solution[r][c] == board[r][c] && !isPrefilled(r, c)
+                            solution[r][c] == board[r][c] && !isPrefilled[r][c]
                         ) {
-                            Color.BLUE // Correctly guessed numbers
+                            ContextCompat.getColor(context, R.color.sudoku_solved) // Correctly guessed numbers
                         } else {
-                            Color.BLACK
+                            ContextCompat.getColor(context, R.color.black)
                         }
                     } else {
-                        Color.BLACK
+                        ContextCompat.getColor(context, R.color.black)
                     }
                     canvas.drawText(board[r][c].toString(), x, y, paintText)
+                } else if (drafts[r][c].isNotEmpty()) {
+                    // Draw drafts
+                    paintText.textSize = originalTextSize / 2.5f
+                    paintText.color = ContextCompat.getColor(context, R.color.gray)
+
+                    for (num in drafts[r][c]) {
+                        val noteX = ((num - 1) % 3) * (cellSize / 3)
+                        val noteY = ((num - 1) / 3) * (cellSize / 3)
+
+                        val cx = c * cellSize + noteX + cellSize / 6
+                        val cy = r * cellSize + noteY + cellSize / 3
+                        canvas.drawText(num.toString(), cx, cy, paintText)
+                    }
+
+                    paintText.textSize = originalTextSize
                 }
             }
         }
 
         // 5) DRAW WRONG GUESS TEMPORARILY
         if (selectedRow != -1 && selectedCol != -1 && wrongGuess != null) {
-            paintText.color = Color.RED
+            paintText.color = ContextCompat.getColor(context, R.color.red)
             canvas.drawText(
                 wrongGuess.toString(),
                 selectedCol * cellSize + cellSize / 2,
@@ -150,9 +171,6 @@ class SudokuGridView @JvmOverloads constructor(
         }
     }
 
-    private fun isPrefilled(r: Int, c: Int): Boolean {
-        return board[r][c] != 0 && board[r][c] == solution[r][c]
-    }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_DOWN) {

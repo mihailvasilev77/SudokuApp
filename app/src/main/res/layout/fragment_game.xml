@@ -3,7 +3,7 @@
     android:id="@+id/gameContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sudoku_bg"
+    android:background="@color/white"
     android:padding="8dp">
 
     <LinearLayout
@@ -11,26 +11,23 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Timer -->
         <TextView
             android:id="@+id/tvTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00:00"
+            android:text="@string/timer_start"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_gravity="center_horizontal"
             android:padding="8dp"
-            android:textColor="@android:color/black" />
+            android:textColor="@color/black" />
 
-        <!-- Sudoku Grid (drawn + clickable cells) -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:layout_gravity="center">
 
-            <!-- Custom drawn grid -->
             <com.example.sudokuapp.SudokuGridView
                 android:id="@+id/sudokuGridView"
                 android:layout_width="match_parent"
@@ -38,14 +35,31 @@
                 android:layout_gravity="center" />
         </FrameLayout>
 
-        <!-- Keyboard -->
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="5"
-            android:rowCount="2"
+            android:columnCount="4"
+            android:rowCount="3"
             android:layout_marginTop="12dp"
             android:layout_gravity="center">
+
+            <Button
+                android:id="@+id/btnDraft"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp"
+                android:text="@string/draft"
+                />
+
+            <Button
+                android:id="@+id/btnHint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp"
+                android:text="@string/hint"
+                />
 
             <Button
                 android:id="@+id/btn1"
@@ -53,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="1" />
+                android:text="@string/one" />
 
             <Button
                 android:id="@+id/btn2"
@@ -61,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="2" />
+                android:text="@string/two" />
 
             <Button
                 android:id="@+id/btn3"
@@ -69,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="3" />
+                android:text="@string/three" />
 
             <Button
                 android:id="@+id/btn4"
@@ -77,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="4" />
+                android:text="@string/four" />
 
             <Button
                 android:id="@+id/btn5"
@@ -85,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="5" />
+                android:text="@string/five" />
 
             <Button
                 android:id="@+id/btn6"
@@ -93,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="6" />
+                android:text="@string/six" />
 
             <Button
                 android:id="@+id/btn7"
@@ -101,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="7" />
+                android:text="@string/seven" />
 
             <Button
                 android:id="@+id/btn8"
@@ -109,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="8" />
+                android:text="@string/eight" />
 
             <Button
                 android:id="@+id/btn9"
@@ -117,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="9" />
+                android:text="@string/nine" />
 
             <Button
                 android:id="@+id/btnClear"
@@ -125,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="Cl" />
+                android:text="@string/clear" />
         </GridLayout>
     </LinearLayout>
 </FrameLayout>

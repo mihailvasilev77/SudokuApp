@@ -8,7 +8,8 @@ class GameViewModel : ViewModel() {
 
     val board = Array(9) { IntArray(9) }
     val solution = Array(9) { IntArray(9) }
-    val isWrongGuess = Array(9) { BooleanArray(9) { false } }
+    val isPrefilled = Array(9) { BooleanArray(9)  }
+    val drafts = Array(9) { Array(9) { mutableSetOf<Int>() } }
 
     var selectedRow = -1
     var selectedCol = -1
@@ -18,12 +19,19 @@ class GameViewModel : ViewModel() {
 
     var difficulty = "medium"
     var isGameGenerated = false
+    var isDraftMode = false
+
 
     fun generateSudoku() {
         board.forEach { it.fill(0) }
         fillDiagonalBoxes()
         solveBoard(0, 0)
-        for (i in 0..8) for (j in 0..8) solution[i][j] = board[i][j]
+        for (r in 0..8) for (c in 0..8) {
+            solution[r][c] = board[r][c];
+            isPrefilled[r][c] = true;
+            drafts[r][c].clear();
+        }
+
 
         val cellsToRemove = when (difficulty) {
             "easy" -> 1
@@ -40,6 +48,7 @@ class GameViewModel : ViewModel() {
                 c = Random.nextInt(9)
             } while (board[r][c] == 0)
             board[r][c] = 0
+            isPrefilled[r][c] = false
         }
 
         isGameGenerated = true

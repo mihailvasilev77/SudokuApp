@@ -21,12 +21,11 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 val current = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
                 if (current is GameFragment) {
-                    // Go back to menu instead of exiting
                     supportFragmentManager.commit {
                         replace(R.id.fragmentContainer, MenuFragment())
                     }
                 } else {
-                    finish() // If already in menu, exit app
+                    finish()
                 }
             }
         })

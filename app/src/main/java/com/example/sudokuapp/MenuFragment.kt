@@ -27,17 +27,15 @@ class MenuFragment : Fragment() {
         val btnStart = view.findViewById<Button>(R.id.btnStartGame)
         val btnReturn = view.findViewById<Button>(R.id.btnReturnGame)
 
-        // Setup difficulty dropdown
         val difficulties = listOf("Easy", "Medium", "Hard")
         spinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, difficulties)
 
-        // Load preferences to check if there is a saved game
         GamePreferences.loadGame(requireContext(), viewModel)
         btnReturn.visibility = if (viewModel.isGameGenerated) View.VISIBLE else View.GONE
 
 
         btnStart.setOnClickListener {
-            GamePreferences.clearGame(requireContext()) // ✅ clear old saved game
+            GamePreferences.clearGame(requireContext())
             val selected = spinner.selectedItem.toString().lowercase()
             viewModel.difficulty = selected
             viewModel.isGameGenerated = false

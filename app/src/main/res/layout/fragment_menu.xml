@@ -15,13 +15,13 @@
         android:id="@+id/btnStartGame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Game" />
+        android:text="@string/new_game" />
 
     <Button
         android:id="@+id/btnReturnGame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Return to Game"
+        android:text="@string/return_to_game"
         android:visibility="gone"
         android:layout_marginTop="10dp"/>
 </LinearLayout>
