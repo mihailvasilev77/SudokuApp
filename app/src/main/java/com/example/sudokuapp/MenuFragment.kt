@@ -29,6 +29,7 @@ class MenuFragment : Fragment() {
         val spinner = view.findViewById<Spinner>(R.id.spinnerDifficulty)
         val btnStart = view.findViewById<Button>(R.id.btnStartGame)
         val btnReturn = view.findViewById<Button>(R.id.btnReturnGame)
+        val btnStats = view.findViewById<Button>(R.id.btnStats)
 
         spinner.adapter = ArrayAdapter(
             requireContext(),
@@ -51,6 +52,12 @@ class MenuFragment : Fragment() {
         btnReturn.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.fragmentContainer, GameFragment())
+            }
+        }
+
+        btnStats.setOnClickListener {
+            parentFragmentManager.commit {
+                replace(R.id.fragmentContainer, StatsFragment())
             }
         }
     }

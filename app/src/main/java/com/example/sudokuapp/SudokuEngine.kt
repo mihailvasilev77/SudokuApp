@@ -26,6 +26,7 @@ class SudokuEngine {
         // Step 1: Fill the three diagonal 3x3 boxes independently.
         // These boxes don't share any row or column, so they can be
         // filled with random permutations without constraint checking.
+
         for (i in 0..8 step 3) {
             fillBox(board, i, i)
         }

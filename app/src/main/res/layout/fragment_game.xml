@@ -11,17 +11,37 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvTimer"
-            android:layout_width="wrap_content"
+        <!-- Top bar: Timer (left) and Mistakes (right) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/timer_start"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
-            android:padding="8dp"
-            android:textColor="@color/black" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
 
+            <TextView
+                android:id="@+id/tvTimer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/timer_start"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvMistakes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/red" />
+
+        </LinearLayout>
+
+        <!-- Sudoku Grid -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -35,13 +55,31 @@
                 android:layout_gravity="center" />
         </FrameLayout>
 
+        <!-- Keyboard: 4 columns, now with Undo/Redo replacing Draft/Hint row -->
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="4"
-            android:rowCount="3"
+            android:rowCount="4"
             android:layout_marginTop="12dp"
             android:layout_gravity="center">
+
+            <!-- Row 1: Undo, Redo, Draft, Hint -->
+            <Button
+                android:id="@+id/btnUndo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp"
+                android:text="@string/undo" />
+
+            <Button
+                android:id="@+id/btnRedo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="4dp"
+                android:text="@string/redo" />
 
             <Button
                 android:id="@+id/btnDraft"
@@ -49,8 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="@string/draft"
-                />
+                android:text="@string/draft" />
 
             <Button
                 android:id="@+id/btnHint"
@@ -58,9 +95,9 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
-                android:text="@string/hint"
-                />
+                android:text="@string/hint" />
 
+            <!-- Row 2-4: Number buttons 1-9 + Clear -->
             <Button
                 android:id="@+id/btn1"
                 android:layout_width="0dp"
@@ -140,6 +177,7 @@
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
                 android:text="@string/clear" />
+
         </GridLayout>
     </LinearLayout>
 </FrameLayout>

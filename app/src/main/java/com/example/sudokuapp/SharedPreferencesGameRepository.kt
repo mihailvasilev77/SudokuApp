@@ -6,21 +6,10 @@ import org.json.JSONArray
 
 /**
  * [GameRepository] implementation backed by SharedPreferences + JSON.
- *
- * This is functionally equivalent to the old GamePreferences object,
- * but it no longer takes the ViewModel as a parameter. Instead it
- * reads and writes [GameState] — a clean data boundary.
- *
- * When you migrate to Room, you'll create a RoomGameRepository that
- * implements the same interface, and nothing else needs to change.
  */
 class SharedPreferencesGameRepository(context: Context) : GameRepository {
 
     private val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
-    // =====================================================================
-    // GameRepository interface
-    // =====================================================================
 
     override fun saveGame(state: GameState) {
         prefs.edit {
@@ -33,6 +22,7 @@ class SharedPreferencesGameRepository(context: Context) : GameRepository {
             putInt(KEY_SELECTED_ROW, state.selectedRow)
             putInt(KEY_SELECTED_COL, state.selectedCol)
             putBoolean(KEY_IS_GAME, state.isGameGenerated)
+            putInt(KEY_MISTAKES, state.mistakes)
         }
     }
 
@@ -52,7 +42,8 @@ class SharedPreferencesGameRepository(context: Context) : GameRepository {
             ),
             selectedRow = prefs.getInt(KEY_SELECTED_ROW, -1),
             selectedCol = prefs.getInt(KEY_SELECTED_COL, -1),
-            isGameGenerated = prefs.getBoolean(KEY_IS_GAME, false)
+            isGameGenerated = prefs.getBoolean(KEY_IS_GAME, false),
+            mistakes = prefs.getInt(KEY_MISTAKES, 0)
         )
     }
 
@@ -64,7 +55,7 @@ class SharedPreferencesGameRepository(context: Context) : GameRepository {
     }
 
     // =====================================================================
-    // JSON serialization (private)
+    // JSON serialization
     // =====================================================================
 
     private fun intListToJson(grid: List<List<Int>>): String {
@@ -142,5 +133,6 @@ class SharedPreferencesGameRepository(context: Context) : GameRepository {
         private const val KEY_SELECTED_ROW = "selected_row"
         private const val KEY_SELECTED_COL = "selected_col"
         private const val KEY_DRAFTS = "drafts"
+        private const val KEY_MISTAKES = "mistakes"
     }
 }

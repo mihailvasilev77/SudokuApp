@@ -4,12 +4,9 @@ package com.example.sudokuapp
  * Immutable snapshot of the entire game state, used for persistence.
  *
  * This is a plain data class with no Android dependencies, which means:
- *   - It can cross the ViewModel ↔ Repository boundary cleanly
+ *   - It can cross the ViewModel <-> Repository boundary cleanly
  *   - It's easy to serialize (to SharedPreferences now, Room later)
  *   - It's easy to test
- *
- * The ViewModel converts its mutable working arrays into this snapshot
- * when saving, and restores from it when loading.
  */
 data class GameState(
     val board: List<List<Int>>,
@@ -20,10 +17,10 @@ data class GameState(
     val difficulty: Difficulty,
     val selectedRow: Int,
     val selectedCol: Int,
-    val isGameGenerated: Boolean
+    val isGameGenerated: Boolean,
+    val mistakes: Int = 0
 ) {
     companion object {
-        /** Convenience builder from the mutable arrays used at runtime. */
         fun fromArrays(
             board: Array<IntArray>,
             solution: Array<IntArray>,
@@ -33,7 +30,8 @@ data class GameState(
             difficulty: Difficulty,
             selectedRow: Int,
             selectedCol: Int,
-            isGameGenerated: Boolean
+            isGameGenerated: Boolean,
+            mistakes: Int = 0
         ): GameState = GameState(
             board = board.map { it.toList() },
             solution = solution.map { it.toList() },
@@ -43,11 +41,11 @@ data class GameState(
             difficulty = difficulty,
             selectedRow = selectedRow,
             selectedCol = selectedCol,
-            isGameGenerated = isGameGenerated
+            isGameGenerated = isGameGenerated,
+            mistakes = mistakes
         )
     }
 
-    /** Write board data back into mutable arrays (used by ViewModel on restore). */
     fun copyIntoArrays(
         board: Array<IntArray>,
         solution: Array<IntArray>,

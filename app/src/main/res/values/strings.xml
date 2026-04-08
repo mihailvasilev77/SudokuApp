@@ -15,6 +15,29 @@
     <string name="hint">Hint</string>
     <string name="four">4</string>
     <string name="return_to_game">Return to Game</string>
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
+    <string name="mistakes_format">Mistakes: %1$d / %2$d</string>
+    <string name="statistics">Statistics</string>
+    <string name="overall">Overall</string>
+    <string name="games_played">Games Played</string>
+    <string name="win_rate">Win Rate</string>
+    <string name="win_streak">Win Streak</string>
+    <string name="recent_games">Recent Games</string>
+    <string name="no_games_yet">No games played yet</string>
+    <string name="clear_stats">Clear Stats</string>
+    <string name="back_to_menu">Back to Menu</string>
+    <string name="best_time">Best: %1$s</string>
+    <string name="avg_time">Avg: %1$s</string>
+    <string name="stats_win_rate">Win rate: %1$d%%</string>
+    <string name="games_count">%1$d games</string>
+    <string name="win_label">WIN</string>
+    <string name="loss_label">LOSS</string>
+    <string name="clear_stats_confirm_title">Clear Statistics?</string>
+    <string name="clear_stats_confirm_message">This will permanently delete all your game history. This cannot be undone.</string>
+    <string name="cancel">Cancel</string>
+    <string name="clear_confirm">Clear</string>
+
     <string-array name="difficulty_levels">
         <item>Easy</item>
         <item>Medium</item>

@@ -12,9 +12,6 @@ import kotlinx.coroutines.launch
 
 /**
  * Result of a [GameViewModel.placeNumber] or [GameViewModel.applyHint] call.
- *
- * The Fragment maps this to visual feedback (grid invalidation, wrong-guess
- * color, win animation) without containing any game logic.
  */
 enum class PlaceNumberResult {
     IGNORED,
@@ -22,14 +19,19 @@ enum class PlaceNumberResult {
     CLEARED,
     WRONG_GUESS,
     CORRECT,
-    WIN
+    WIN,
+    GAME_OVER       // mistake limit reached
 }
 
 class GameViewModel : ViewModel() {
 
+    companion object {
+        const val MAX_MISTAKES = 3
+    }
+
     private val engine = SudokuEngine()
 
-    // --- Game data (mutable arrays shared with SudokuGridView for rendering) ---
+    // --- Game data ---
     val board = Array(9) { IntArray(9) }
     val solution = Array(9) { IntArray(9) }
     val isPrefilled = Array(9) { BooleanArray(9) }
@@ -43,16 +45,60 @@ class GameViewModel : ViewModel() {
     var isDraftMode = false
         private set
 
+    // --- Timer ---
     private val _secondsElapsed = MutableStateFlow(0)
     val secondsElapsed: StateFlow<Int> = _secondsElapsed.asStateFlow()
-
     private var timerJob: Job? = null
+
+    // --- Mistake counter (reactive) ---
+    private val _mistakes = MutableStateFlow(0)
+    val mistakes: StateFlow<Int> = _mistakes.asStateFlow()
+
+    // --- Hints used (for statistics) ---
+    var hintsUsed = 0
+        private set
+
+    // --- Undo / Redo stacks ---
+    // Each entry is a snapshot of (board, drafts) taken BEFORE an action.
+    // This means undo restores the snapshot, and redo re-applies it.
+    private val undoStack = ArrayDeque<BoardSnapshot>()
+    private val redoStack = ArrayDeque<BoardSnapshot>()
+
+    val canUndo: Boolean get() = undoStack.isNotEmpty()
+    val canRedo: Boolean get() = redoStack.isNotEmpty()
+
+    // =====================================================================
+    // UNDO / REDO
+    // =====================================================================
+
+    /**
+     * Captures the current board + drafts state before a mutating action.
+     * Called internally by placeNumber/applyHint before they modify the board.
+     */
+    private fun pushUndoSnapshot() {
+        undoStack.addLast(BoardSnapshot.capture(board, drafts))
+        // Any new action invalidates the redo history
+        redoStack.clear()
+    }
+
+    fun undo() {
+        if (undoStack.isEmpty()) return
+        // Save current state to redo stack before reverting
+        redoStack.addLast(BoardSnapshot.capture(board, drafts))
+        undoStack.removeLast().restoreInto(board, drafts)
+    }
+
+    fun redo() {
+        if (redoStack.isEmpty()) return
+        // Save current state to undo stack before re-applying
+        undoStack.addLast(BoardSnapshot.capture(board, drafts))
+        redoStack.removeLast().restoreInto(board, drafts)
+    }
 
     // =====================================================================
     // STATE SNAPSHOT — for the Repository layer
     // =====================================================================
 
-    /** Creates an immutable snapshot of all game state for persistence. */
     fun toSaveState(): GameState = GameState.fromArrays(
         board = board,
         solution = solution,
@@ -62,10 +108,10 @@ class GameViewModel : ViewModel() {
         difficulty = difficulty,
         selectedRow = selectedRow,
         selectedCol = selectedCol,
-        isGameGenerated = isGameGenerated
+        isGameGenerated = isGameGenerated,
+        mistakes = _mistakes.value
     )
 
-    /** Restores game state from a persisted snapshot. */
     fun restoreFrom(state: GameState) {
         state.copyIntoArrays(board, solution, isPrefilled, drafts)
         _secondsElapsed.value = state.secondsElapsed
@@ -73,6 +119,10 @@ class GameViewModel : ViewModel() {
         selectedRow = state.selectedRow
         selectedCol = state.selectedCol
         isGameGenerated = state.isGameGenerated
+        _mistakes.value = state.mistakes
+        // Clear history on restore — we don't persist undo/redo stacks
+        undoStack.clear()
+        redoStack.clear()
     }
 
     // =====================================================================
@@ -100,8 +150,11 @@ class GameViewModel : ViewModel() {
 
         if (isDraftMode) {
             if (num == 0) {
+                if (drafts[r][c].isEmpty()) return PlaceNumberResult.IGNORED
+                pushUndoSnapshot()
                 drafts[r][c].clear()
             } else {
+                pushUndoSnapshot()
                 val cellDrafts = drafts[r][c]
                 if (num in cellDrafts) cellDrafts.remove(num) else cellDrafts.add(num)
             }
@@ -112,12 +165,23 @@ class GameViewModel : ViewModel() {
             if (board[r][c] != 0 && board[r][c] == solution[r][c]) {
                 return PlaceNumberResult.IGNORED
             }
+            if (board[r][c] == 0) return PlaceNumberResult.IGNORED
+            pushUndoSnapshot()
             board[r][c] = 0
             return PlaceNumberResult.CLEARED
         }
 
-        if (solution[r][c] != num) return PlaceNumberResult.WRONG_GUESS
+        if (solution[r][c] != num) {
+            _mistakes.value++
+            return if (_mistakes.value >= MAX_MISTAKES) {
+                PlaceNumberResult.GAME_OVER
+            } else {
+                PlaceNumberResult.WRONG_GUESS
+            }
+        }
 
+        // Correct number
+        pushUndoSnapshot()
         board[r][c] = num
         drafts[r][c].clear()
         engine.clearRelatedDrafts(drafts, r, c, num)
@@ -135,6 +199,8 @@ class GameViewModel : ViewModel() {
 
         if (emptyCells.isEmpty()) return PlaceNumberResult.IGNORED
 
+        pushUndoSnapshot()
+        hintsUsed++
         val (r, c) = emptyCells.random()
         val num = solution[r][c]
         board[r][c] = num
@@ -174,6 +240,31 @@ class GameViewModel : ViewModel() {
     }
 
     // =====================================================================
+    // BOARD RESET (same puzzle, fresh attempt)
+    // =====================================================================
+
+    /**
+     * Resets the board to its initial prefilled state without generating
+     * a new puzzle. Clears all user-placed numbers, drafts, mistakes,
+     * and undo/redo history. The solution and prefilled cells stay the same.
+     */
+    fun resetBoard() {
+        for (r in 0..8) for (c in 0..8) {
+            if (!isPrefilled[r][c]) {
+                board[r][c] = 0
+            }
+            drafts[r][c].clear()
+        }
+        _mistakes.value = 0
+        hintsUsed = 0
+        selectedRow = -1
+        selectedCol = -1
+        isDraftMode = false
+        undoStack.clear()
+        redoStack.clear()
+    }
+
+    // =====================================================================
     // PUZZLE GENERATION
     // =====================================================================
 
@@ -187,11 +278,48 @@ class GameViewModel : ViewModel() {
             drafts[r][c].clear()
         }
 
+        _mistakes.value = 0
+        hintsUsed = 0
+        undoStack.clear()
+        redoStack.clear()
         isGameGenerated = true
     }
 
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+    }
+}
+
+/**
+ * Lightweight snapshot of the board and drafts for undo/redo.
+ *
+ * We only snapshot the data that changes on user actions — not
+ * the solution, isPrefilled, timer, etc. which are immutable
+ * during gameplay. This keeps memory usage low.
+ */
+data class BoardSnapshot(
+    val board: List<List<Int>>,
+    val drafts: List<List<Set<Int>>>
+) {
+    companion object {
+        fun capture(
+            board: Array<IntArray>,
+            drafts: Array<Array<MutableSet<Int>>>
+        ): BoardSnapshot = BoardSnapshot(
+            board = board.map { it.toList() },
+            drafts = drafts.map { row -> row.map { it.toSet() } }
+        )
+    }
+
+    fun restoreInto(
+        board: Array<IntArray>,
+        drafts: Array<Array<MutableSet<Int>>>
+    ) {
+        for (r in 0..8) for (c in 0..8) {
+            board[r][c] = this.board[r][c]
+            drafts[r][c].clear()
+            drafts[r][c].addAll(this.drafts[r][c])
+        }
     }
 }
